@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% set title = "无权限" %}
+{% block content %}
+<section class="section narrow">
+  <h1>无权限访问</h1>
+  <p class="notice">当前账号不是管理员，不能访问安全中心、日志或安全自测。</p>
+  <a class="button-link" href="{{ url_for('index') }}">返回首页</a>
+</section>
+{% endblock %}

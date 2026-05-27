@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% set title = "拦截日志" %}
+{% block content %}
+{% set category_labels = {
+  "SQL_INJECTION": "SQL 注入",
+  "XSS": "XSS",
+  "PATH_TRAVERSAL": "路径穿越",
+  "RATE_LIMIT": "高频请求限制",
+  "ILLEGAL_USER_AGENT": "非法 User-Agent"
+} %}
+<section class="section">
+  <h1>拦截日志</h1>
+  <p class="muted">日志文件：{{ log_path }}</p>
+  <div class="log-list">
+    {% for event in events %}
+    <article class="log-entry">
+      <div class="log-head">
+        <strong>{{ event.rule_id or "原始记录" }} · {{ category_labels.get(event.category, event.category or "未知分类") }}</strong>
+        <span>{{ event.timestamp or "" }}</span>
+      </div>
+      {% if event.rule_id %}
+      <dl class="details">
+        <dt>请求路径</dt>
+        <dd>{{ event.method }} {{ event.path }}</dd>
+        <dt>规则名称</dt>
+        <dd>{{ event.rule_name }}</dd>
+        <dt>拦截原因</dt>
+        <dd>{{ event.reason }}</dd>
+        <dt>命中内容</dt>
+        <dd><code>{{ event.matched_value }}</code></dd>
+        <dt>处置结果</dt>
+        <dd>已拦截 / HTTP {{ event.status_code }}</dd>
+      </dl>
+      {% else %}
+      <code>{{ event }}</code>
+      {% endif %}
+    </article>
+    {% else %}
+    <p>暂时没有拦截记录。</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

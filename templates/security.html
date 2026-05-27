@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set title = "安全中心" %}
+{% block content %}
+{% set category_labels = {
+  "SQL_INJECTION": "SQL 注入",
+  "XSS": "XSS",
+  "PATH_TRAVERSAL": "路径穿越",
+  "RATE_LIMIT": "高频请求限制",
+  "ILLEGAL_USER_AGENT": "非法 User-Agent"
+} %}
+{% set target_labels = {
+  "params": "业务参数",
+  "params_path": "参数、路径与查询串",
+  "ip_path": "来源 IP 与路径",
+  "user_agent": "User-Agent 请求头"
+} %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <h1>安全中心</h1>
+      <p class="muted">管理员可以查看当前 WAF 规则，也可以临时启用/停用规则或调整高频请求阈值。</p>
+    </div>
+    <a class="button-link" href="{{ url_for('manual') }}">安全自测</a>
+  </div>
+
+  {% if saved %}
+    <p class="notice success">规则设置已更新，本次运行期间生效。</p>
+  {% endif %}
+
+  <form method="post">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>启用</th>
+            <th>编号</th>
+            <th>规则名称</th>
+            <th>检测对象</th>
+            <th>说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rule in rules %}
+          <tr>
+            <td>
+              <input class="check-input" type="checkbox" name="enabled_rules" value="{{ rule.id }}" {% if rule.enabled %}checked{% endif %}>
+            </td>
+            <td>{{ rule.id }}</td>
+            <td>{{ rule.name }}<br><span class="muted">{{ category_labels.get(rule.category, rule.category) }}</span></td>
+            <td>{{ target_labels.get(rule.target, rule.target) }}</td>
+            <td>
+              {{ rule.description }}
+              {% if rule.patterns %}
+              <details>
+                <summary>查看检测点</summary>
+                <ul class="pattern-list">
+                  {% for pattern in rule.patterns %}
+                  <li><strong>{{ pattern.name }}</strong>：<code>{{ pattern.pattern }}</code></li>
+                  {% endfor %}
+                </ul>
+              </details>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% set rate_rule = rules | selectattr("id", "equalto", "R004") | first %}
+    <div class="settings-row">
+      <label>高频阈值
+        <input name="threshold" type="number" min="1" max="60" value="{{ rate_rule.threshold }}">
+      </label>
+      <label>窗口秒数
+        <input name="window_seconds" type="number" min="1" max="300" value="{{ rate_rule.window_seconds }}">
+      </label>
+      <button type="submit">保存设置</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

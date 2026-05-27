@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "project": "Campus Library WAF Protection System",
+    "version": "2.1",
+    "owner": "course-design-local-lab",
+    "note": "Rules are used only for the local campus-library demo application.",
+    "regex_note": "Patterns use Python re syntax. (?ix) means ignore case and allow readable spaces in the expression."
+  },
+  "rules": [
+    {
+      "id": "R001",
+      "name": "SQL 注入特征过滤",
+      "category": "SQL_INJECTION",
+      "type": "regex",
+      "target": "params",
+      "severity": "high",
+      "enabled": true,
+      "description": "检测图书检索、登录、注册、接口参数中的常见 SQL 注入片段。",
+      "patterns": [
+        {
+          "name": "union select 联合查询",
+          "pattern": "(?ix) \\b union \\b \\s+ \\b select \\b",
+          "example": "union select username,password from users",
+          "description": "攻击者尝试把额外查询结果拼接到原 SQL 查询中。"
+        },
+        {
+          "name": "select from 查询结构",
+          "pattern": "(?ix) \\b select \\b [\\s\\S]{0,80} \\b from \\b",
+          "example": "select password from users",
+          "description": "参数中直接出现完整查询结构，属于高风险 SQL 片段。"
+        },
+        {
+          "name": "or 恒真条件",
+          "pattern": "(?ix) \\b or \\b \\s+ ['\"]? \\d+ ['\"]? \\s* = \\s* ['\"]? \\d+ ['\"]?",
+          "example": "' OR 1=1 --",
+          "description": "通过 OR 1=1 让登录或查询条件恒为真。"
+        },
+        {
+          "name": "and 恒真条件",
+          "pattern": "(?ix) \\b and \\b \\s+ ['\"]? \\d+ ['\"]? \\s* = \\s* ['\"]? \\d+ ['\"]?",
+          "example": "admin' AND 1=1",
+          "description": "通过 AND 1=1 探测参数是否被拼接进 SQL。"
+        },
+        {
+          "name": "drop table 删除表",
+          "pattern": "(?ix) \\b drop \\s+ table \\b",
+          "example": "drop table users",
+          "description": "检测破坏性 SQL 语句。"
+        },
+        {
+          "name": "SQL 注释符",
+          "pattern": "(?ix) -- | /\\*",
+          "example": "admin' --",
+          "description": "攻击者常用注释符截断原 SQL 后半部分。"
+        }
+      ]
+    },
+    {
+      "id": "R002",
+      "name": "XSS 特征过滤",
+      "category": "XSS",
+      "type": "regex",
+      "target": "params",
+      "severity": "high",
+      "enabled": true,
+      "description": "检测注册账号、书评咨询、检索参数和 JSON 参数中的 XSS 载荷，包括通过 F12 修改表单后提交的事件属性。",
+      "patterns": [
+        {
+          "name": "script 标签",
+          "pattern": "(?ix) < \\s* script \\b",
+          "example": "<script>alert(1)</script>",
+          "description": "检测直接插入脚本标签的反射型或存储型 XSS。"
+        },
+        {
+          "name": "javascript URL",
+          "pattern": "(?ix) javascript \\s* :",
+          "example": "javascript:alert(1)",
+          "description": "检测把 JavaScript 代码放入链接或属性中的情况。"
+        },
+        {
+          "name": "通用事件属性",
+          "pattern": "(?ix) \\b on [a-z]+ \\s* =",
+          "example": "<input onclick=alert(1)>",
+          "description": "检测 onclick、onmouseover、onfocus、onerror、onload 等事件处理器。"
+        },
+        {
+          "name": "img 标签载荷",
+          "pattern": "(?ix) < \\s* img \\b",
+          "example": "<img src=x onerror=alert(1)>",
+          "description": "img 标签常与事件属性组合形成 XSS 载荷。"
+        },
+        {
+          "name": "svg 标签载荷",
+          "pattern": "(?ix) < \\s* svg \\b",
+          "example": "<svg onload=alert(1)>",
+          "description": "svg 标签可携带事件属性或脚本相关内容。"
+        },
+        {
+          "name": "危险 HTML 标签",
+          "pattern": "(?ix) < \\s* (iframe|object|embed|meta|link|body) \\b",
+          "example": "<iframe src=javascript:alert(1)>",
+          "description": "检测可被滥用触发脚本、重定向或嵌入内容的 HTML 标签。"
+        },
+        {
+          "name": "srcdoc 内联页面",
+          "pattern": "(?ix) \\b srcdoc \\s* =",
+          "example": "<iframe srcdoc='<script>alert(1)</script>'>",
+          "description": "检测 iframe srcdoc 内联 HTML 注入。"
+        }
+      ]
+    },
+    {
+      "id": "R003",
+      "name": "路径穿越特征过滤",
+      "category": "PATH_TRAVERSAL",
+      "type": "regex",
+      "target": "params_path",
+      "severity": "medium",
+      "enabled": true,
+      "description": "检测资料中心文件名参数中的上级目录跳转和敏感文件路径。",
+      "patterns": [
+        {
+          "name": "上级目录跳转",
+          "pattern": "(?ix) \\.\\. [\\\\/]",
+          "example": "..\\..\\windows\\system.ini",
+          "description": "检测 ../ 或 ..\\ 这类向上级目录跳转的路径。"
+        },
+        {
+          "name": "URL 编码的上级目录",
+          "pattern": "(?ix) %2e %2e",
+          "example": "%2e%2e%2fwindows%2fsystem.ini",
+          "description": "检测经过 URL 编码的 .. 片段。"
+        },
+        {
+          "name": "Linux 敏感文件",
+          "pattern": "(?ix) /etc/passwd",
+          "example": "/etc/passwd",
+          "description": "检测读取 Linux 账号文件的尝试。"
+        },
+        {
+          "name": "Windows win.ini",
+          "pattern": "(?ix) windows [\\\\/] win\\.ini",
+          "example": "windows/win.ini",
+          "description": "检测读取 Windows 系统示例文件的尝试。"
+        },
+        {
+          "name": "Windows system.ini",
+          "pattern": "(?ix) windows [\\\\/] system\\.ini",
+          "example": "windows/system.ini",
+          "description": "检测读取 Windows 系统配置示例文件的尝试。"
+        },
+        {
+          "name": "Windows boot.ini",
+          "pattern": "(?ix) boot\\.ini",
+          "example": "boot.ini",
+          "description": "检测读取历史 Windows 启动配置文件的尝试。"
+        }
+      ]
+    },
+    {
+      "id": "R004",
+      "name": "高频请求限制",
+      "category": "RATE_LIMIT",
+      "type": "rate_limit",
+      "target": "ip_path",
+      "severity": "medium",
+      "enabled": true,
+      "threshold": 6,
+      "window_seconds": 10,
+      "description": "限制同一来源 IP 在 10 秒滑动窗口内对同一路径最多请求 6 次。"
+    },
+    {
+      "id": "R005",
+      "name": "非法 User-Agent 识别",
+      "category": "ILLEGAL_USER_AGENT",
+      "type": "regex",
+      "target": "user_agent",
+      "severity": "low",
+      "enabled": true,
+      "description": "检测扫描器特征或实验中定义的非法 User-Agent。",
+      "patterns": [
+        {
+          "name": "sqlmap 扫描器",
+          "pattern": "(?ix) sqlmap",
+          "example": "sqlmap/1.7",
+          "description": "检测常见 SQL 注入自动化测试工具。"
+        },
+        {
+          "name": "nikto 扫描器",
+          "pattern": "(?ix) nikto",
+          "example": "Nikto/2.5",
+          "description": "检测常见 Web 漏洞扫描器。"
+        },
+        {
+          "name": "acunetix 扫描器",
+          "pattern": "(?ix) acunetix",
+          "example": "Acunetix",
+          "description": "检测商业 Web 安全扫描器特征。"
+        },
+        {
+          "name": "nessus 扫描器",
+          "pattern": "(?ix) nessus",
+          "example": "Nessus",
+          "description": "检测漏洞扫描器请求头特征。"
+        },
+        {
+          "name": "masscan 扫描器",
+          "pattern": "(?ix) masscan",
+          "example": "masscan",
+          "description": "检测端口扫描工具特征。"
+        },
+        {
+          "name": "实验自定义恶意 UA",
+          "pattern": "(?ix) badbot-lab",
+          "example": "badbot-lab/1.0",
+          "description": "用于本地实验演示的自定义非法 User-Agent。"
+        }
+      ]
+    }
+  ]
+}

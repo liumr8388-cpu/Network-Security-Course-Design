@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set title = "请求已拦截" %}
+{% block content %}
+{% set category_labels = {
+  "SQL_INJECTION": "SQL 注入",
+  "XSS": "XSS",
+  "PATH_TRAVERSAL": "路径穿越",
+  "RATE_LIMIT": "高频请求限制",
+  "ILLEGAL_USER_AGENT": "非法 User-Agent"
+} %}
+<section class="section narrow">
+  <h1>请求已被安全策略拦截</h1>
+  <p class="notice">校园图书借阅系统的 WAF 根据规则 {{ event.rule_id }} 拦截了该请求。</p>
+  <dl class="details">
+    <dt>规则分类</dt>
+    <dd>{{ category_labels.get(event.category, event.category) }}</dd>
+    <dt>拦截原因</dt>
+    <dd>{{ event.reason }}</dd>
+    <dt>命中内容</dt>
+    <dd><code>{{ event.matched_value }}</code></dd>
+    <dt>处置结果</dt>
+    <dd>已拦截 / HTTP {{ event.status_code }}</dd>
+  </dl>
+  <a class="button-link" href="{{ url_for('logs') }}">查看日志</a>
+</section>
+{% endblock %}

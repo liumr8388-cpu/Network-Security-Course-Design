@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% set title = "图书检索" %}
+{% block content %}
+<section class="section">
+  <h1>图书检索</h1>
+  <form class="form-row" method="get">
+    <input name="q" value="{{ query }}" placeholder="输入书名、作者、ISBN 或分类">
+    <button type="submit">检索</button>
+  </form>
+
+  <div class="book-grid">
+    {% for book in results %}
+    <article class="book-card">
+      <span class="tag">{{ book.category }}</span>
+      <h2>{{ book.title }}</h2>
+      <p>{{ book.author }}</p>
+      <dl class="book-meta">
+        <dt>ISBN</dt>
+        <dd>{{ book.isbn }}</dd>
+        <dt>馆藏位置</dt>
+        <dd>{{ book.location }}</dd>
+        <dt>可借数量</dt>
+        <dd>{{ book.available }} 本</dd>
+      </dl>
+    </article>
+    {% else %}
+    <p class="muted">没有匹配到馆藏记录。</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

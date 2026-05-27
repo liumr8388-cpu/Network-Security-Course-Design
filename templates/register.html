@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set title = "注册" %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-copy">
+    <p class="eyebrow">Reader Account</p>
+    <h1>注册读者账号</h1>
+    <p class="lead">只需要设置账号和密码。注册请求同样会先经过 WAF，异常输入会在创建账号前被拦截。</p>
+  </div>
+
+  <div class="section auth-card">
+    <h2>创建账号</h2>
+
+    {% if created_user %}
+      <p class="notice success">账号 {{ created_user }} 注册成功，可以返回登录。</p>
+    {% endif %}
+
+    {% if errors %}
+      <div class="notice">
+        {% for error in errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form class="stacked-form" method="post">
+      <label>账号
+        <input name="username" autocomplete="username" placeholder="reader001">
+      </label>
+      <label>密码
+        <input name="password" type="password" autocomplete="new-password" placeholder="至少 6 位">
+      </label>
+      <button type="submit">注册</button>
+    </form>
+    <p class="muted">已有账号？<a class="text-link" href="{{ url_for('login') }}">返回登录</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% set title = "资料中心" %}
+{% block content %}
+<section class="section narrow">
+  <h1>资料中心</h1>
+  <p class="muted">可以选择公开资料，也可以手动输入文件名。文件名参数会经过路径穿越规则检查。</p>
+  <form class="stacked-form" method="get">
+    <label>文件名
+      <input name="name" value="{{ file_name }}" list="resource-files" placeholder="notice.txt">
+      <datalist id="resource-files">
+        {% for item in files %}
+        <option value="{{ item }}"></option>
+        {% endfor %}
+      </datalist>
+    </label>
+    <button type="submit">打开资料</button>
+  </form>
+  <pre class="file-box">{{ content }}</pre>
+</section>
+{% endblock %}

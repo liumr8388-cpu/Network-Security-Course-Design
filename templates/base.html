@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or "校园图书借阅系统" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('index') if current_user else url_for('login') }}">校园图书借阅系统</a>
+      <nav class="nav">
+        {% if current_user %}
+          <a href="{{ url_for('index') }}">首页</a>
+          <a href="{{ url_for('search') }}">图书检索</a>
+          <a href="{{ url_for('reviews') }}">书评咨询</a>
+          <a href="{{ url_for('resources') }}">资料中心</a>
+          {% if current_user.role == "admin" %}
+            <a href="{{ url_for('security') }}">安全中心</a>
+            <a href="{{ url_for('logs') }}">日志</a>
+          {% endif %}
+          <form class="nav-form" action="{{ url_for('logout') }}" method="post">
+            <button type="submit">退出登录</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('login') }}">登录</a>
+          <a href="{{ url_for('register') }}">注册</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

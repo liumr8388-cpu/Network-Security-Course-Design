@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% set title = "校园图书借阅系统" %}
+{% block content %}
+<section class="portal-head">
+  <div>
+    <p class="eyebrow">Library Service Portal</p>
+    <h1>{{ "管理员工作台" if current_user.role == "admin" else "读者服务主页" }}</h1>
+    <p class="lead">
+      {% if current_user.role == "admin" %}
+        查看馆藏概况、审计日志和 WAF 防护状态，必要时可临时启用或停用安全规则。
+      {% else %}
+        检索馆藏、查看资料、提交书评咨询。系统会在后台自动检查异常请求。
+      {% endif %}
+    </p>
+  </div>
+  <form class="quick-search" action="{{ url_for('search') }}" method="get">
+    <label>快速检索
+      <input name="q" placeholder="书名、ISBN、分类">
+    </label>
+    <button type="submit">检索</button>
+  </form>
+</section>
+
+<section class="stats-grid">
+  <article class="stat">
+    <span>馆藏条目</span>
+    <strong>{{ stats.books }}</strong>
+  </article>
+  <article class="stat">
+    <span>当前可借</span>
+    <strong>{{ stats.available }}</strong>
+  </article>
+  <article class="stat">
+    <span>注册读者</span>
+    <strong>{{ stats.users }}</strong>
+  </article>
+  <article class="stat">
+    <span>{{ "启用防护" if current_user.role == "admin" else "读者身份" }}</span>
+    <strong>{{ stats.rules if current_user.role == "admin" else "正常" }}</strong>
+  </article>
+</section>
+
+{% if current_user.role == "admin" %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <h2>安全管理</h2>
+      <p class="muted">管理员可以手动开关 WAF 规则、调整高频阈值，并查看拦截日志。</p>
+    </div>
+    <a class="button-link" href="{{ url_for('security') }}">进入安全中心</a>
+  </div>
+  <div class="stats-grid">
+    <article class="stat">
+      <span>拦截日志</span>
+      <strong>{{ stats.blocked }}</strong>
+    </article>
+    <article class="stat">
+      <span>SQL 注入</span>
+      <strong>R001</strong>
+    </article>
+    <article class="stat">
+      <span>XSS</span>
+      <strong>R002</strong>
+    </article>
+    <article class="stat">
+      <span>路径穿越</span>
+      <strong>R003</strong>
+    </article>
+  </div>
+</section>
+{% else %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <h2>读者服务</h2>
+      <p class="muted">选择常用功能开始使用图书系统。</p>
+    </div>
+  </div>
+  <div class="service-grid">
+    <a class="service-card" href="{{ url_for('search') }}">
+      <strong>图书检索</strong>
+      <span>按书名、ISBN、作者或分类查询馆藏。</span>
+    </a>
+    <a class="service-card" href="{{ url_for('resources') }}">
+      <strong>资料中心</strong>
+      <span>查看通知、借阅说明和推荐阅读。</span>
+    </a>
+    <a class="service-card" href="{{ url_for('reviews') }}">
+      <strong>书评咨询</strong>
+      <span>提交书评、荐购建议或借阅咨询。</span>
+    </a>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <h2>热门馆藏</h2>
+      <p class="muted">读者可以正常检索、查看位置和可借数量。</p>
+    </div>
+    <a class="button-link" href="{{ url_for('search') }}">全部图书</a>
+  </div>
+  <div class="book-grid">
+    {% for book in books %}
+    <article class="book-card">
+      <span class="tag">{{ book.category }}</span>
+      <h3>{{ book.title }}</h3>
+      <p>{{ book.author }}</p>
+      <dl class="book-meta">
+        <dt>ISBN</dt>
+        <dd>{{ book.isbn }}</dd>
+        <dt>位置</dt>
+        <dd>{{ book.location }}</dd>
+        <dt>可借</dt>
+        <dd>{{ book.available }} 本</dd>
+      </dl>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <h2>读者动态</h2>
+      <p class="muted">书评和咨询是正常业务功能，同时也会经过 XSS 防护。</p>
+    </div>
+    <a class="button-link" href="{{ url_for('reviews') }}">发表书评</a>
+  </div>
+  <div class="result-list">
+    {% for review in reviews %}
+    <article class="result-item">
+      <strong>{{ review.name }} · {{ review.book }}</strong>
+      <span>{{ review.content }}</span>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

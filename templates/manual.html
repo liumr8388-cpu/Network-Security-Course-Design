@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% set title = "安全自测" %}
+{% block content %}
+<section class="section">
+  <h1>安全自测</h1>
+  <p class="muted">这里用于管理员在本机授权环境中验证防护效果。所有请求仍然提交到真实业务入口。</p>
+
+  <div class="manual-grid">
+    <article class="manual-card">
+      <h2>图书检索</h2>
+      <form class="stacked-form" action="{{ url_for('search') }}" method="get">
+        <label>检索词
+          <input name="q" placeholder="Web 安全">
+        </label>
+        <button type="submit">发送检索请求</button>
+      </form>
+    </article>
+
+    <article class="manual-card">
+      <h2>读者注册</h2>
+      <form class="stacked-form" action="{{ url_for('register') }}" method="post">
+        <label>用户名
+          <input name="username" placeholder="student002">
+        </label>
+        <label>显示名称
+          <input name="display_name" placeholder="李四">
+        </label>
+        <label>邮箱
+          <input name="email" type="email" placeholder="student002@example.com">
+        </label>
+        <label>密码
+          <input name="password" type="password" placeholder="library2026">
+        </label>
+        <button type="submit">发送注册请求</button>
+      </form>
+    </article>
+
+    <article class="manual-card">
+      <h2>书评咨询</h2>
+      <form class="stacked-form" action="{{ url_for('reviews') }}" method="post">
+        <label>姓名
+          <input name="name" maxlength="40" placeholder="student">
+        </label>
+        <label>相关图书
+          <select name="book">
+            {% for book in books %}
+            <option value="{{ book.title }}">{{ book.title }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>内容
+          <textarea name="content" maxlength="300" rows="4" placeholder="这本书适合入门 Web 安全。"></textarea>
+        </label>
+        <button type="submit">发送书评请求</button>
+      </form>
+    </article>
+
+    <article class="manual-card">
+      <h2>资料中心</h2>
+      <form class="stacked-form" action="{{ url_for('resources') }}" method="get">
+        <label>文件名
+          <input name="name" placeholder="notice.txt">
+        </label>
+        <button type="submit">发送资料请求</button>
+      </form>
+    </article>
+
+    <article class="manual-card">
+      <h2>馆藏 API</h2>
+      <button type="button" id="rate-button">连续请求 /api/books 7 次</button>
+      <pre class="response-box" id="rate-result"></pre>
+    </article>
+  </div>
+</section>
+
+<script>
+  const rateButton = document.querySelector("#rate-button");
+  const rateResult = document.querySelector("#rate-result");
+
+  rateButton.addEventListener("click", async () => {
+    const statuses = [];
+    for (let index = 0; index < 7; index += 1) {
+      const response = await fetch("{{ url_for('api_books') }}");
+      statuses.push(response.status);
+    }
+    rateResult.textContent = statuses.join(" -> ");
+  });
+</script>
+{% endblock %}

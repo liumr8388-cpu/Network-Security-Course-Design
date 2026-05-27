@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% set title = "登录" %}
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-copy">
+    <p class="eyebrow">Library Service Portal</p>
+    <h1>登录校园图书借阅系统</h1>
+    <p class="lead">登录后可以检索馆藏、提交书评咨询、查看资料中心和安全中心。</p>
+  </div>
+
+  <div class="section auth-card">
+    <h2>账号登录</h2>
+    <p class="muted">演示账号：admin / 2023117015，student / library2026。</p>
+    <form class="stacked-form" method="post" action="{{ url_for('login', next=next_url) }}">
+      <label>账号
+        <input name="username" autocomplete="username" placeholder="admin">
+      </label>
+      <label>密码
+        <input name="password" type="password" autocomplete="current-password" placeholder="请输入密码">
+      </label>
+      <button type="submit">登录</button>
+    </form>
+    {% if result is not none and not result %}
+      <p class="notice">账号或密码错误。</p>
+    {% endif %}
+    <p class="muted">还没有账号？<a class="text-link" href="{{ url_for('register') }}">注册新账号</a></p>
+  </div>
+</section>
+{% endblock %}
